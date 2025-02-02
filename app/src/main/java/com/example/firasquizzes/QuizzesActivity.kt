@@ -3,6 +3,7 @@ package com.example.firasquizzes
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -32,12 +33,14 @@ lateinit var tv_option_two:TextView
 lateinit var tv_option_three:TextView
 lateinit var tv_option_four:TextView
 lateinit var btn_submit:Button
+lateinit var mediaPlayer:MediaPlayer
 lateinit var options:ArrayList<TextView>
 var currentPosition = 1
 var answerPosition =99
 var quizLanguage: String =""
 var correctAnswerNumber = 0
 var quizCategory=""
+
 
 
 class QuizzesActivity : AppCompatActivity(),OnClickListener {
@@ -64,19 +67,21 @@ class QuizzesActivity : AppCompatActivity(),OnClickListener {
 
 
                 Handler().postDelayed({
+                    mediaPlayer = MediaPlayer.create(this@QuizzesActivity, R.raw.congratulations_sound)
+                    playMedia()
                     var intent = Intent(this,ResultActivity::class.java)
                     intent.putExtra("correctAnswerNumber", correctAnswerNumber)
                     startActivity(intent)
                     currentPosition=1
                     finish()
                 }, 2000)}
-                if (currentPosition ==10){
-                    var intent = Intent(this,ResultActivity::class.java)
-                    intent.putExtra("correctAnswerNumber", correctAnswerNumber)
-                    startActivity(intent)
-                    currentPosition=1
-                    finish()
-                }
+//                if (currentPosition ==10){
+//                    var intent = Intent(this,ResultActivity::class.java)
+//                    intent.putExtra("correctAnswerNumber", correctAnswerNumber)
+//                    startActivity(intent)
+//                    currentPosition=1
+//                    finish()
+//                }
 //                Log.i("current answer is ", answerPosition.toString())
             }
         }
@@ -128,6 +133,8 @@ class QuizzesActivity : AppCompatActivity(),OnClickListener {
                 response: Response<quizAnswerResponse>
             ) {
                 if(response.body()!!.data.answer.toString() =="right"){
+                    mediaPlayer = MediaPlayer.create(this@QuizzesActivity, R.raw.correct_sound)
+                    playMedia()
                     correctAnswerNumber+=1
                     options[answerPosition-1].background = ContextCompat.getDrawable(this@QuizzesActivity,R.drawable.correct_option_border_bg)
                     Handler().postDelayed({
@@ -139,6 +146,8 @@ class QuizzesActivity : AppCompatActivity(),OnClickListener {
 
 
                 }else if(response.body()!!.data.answer.toString() =="wrong"){
+                    mediaPlayer = MediaPlayer.create(this@QuizzesActivity, R.raw.wrong_sound)
+                    playMedia()
                     options[answerPosition-1].background = ContextCompat.getDrawable(this@QuizzesActivity,R.drawable.wrong_option_border_bg)
                     options[response.body()!!.data.correctAnswerIndex].background = ContextCompat.getDrawable(this@QuizzesActivity,R.drawable.correct_option_border_bg)
 
@@ -159,7 +168,13 @@ class QuizzesActivity : AppCompatActivity(),OnClickListener {
         } )
     }
 
-
+    private fun playMedia() {
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.stop()
+            mediaPlayer.prepare()
+        }
+        mediaPlayer.start()
+    }
 
 
     private fun bindAllTheUiElements() {
